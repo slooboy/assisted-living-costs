@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Elder Care Cost Scenarios</title>
+<style>
+/* Layout: inputs rail on the left, scenario comparison on top, month-by-month stacked chart below, tables last. */
+:root {
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11,11,11,0.10);
+  --accent: #2a78d6;
+  --bar: #2a78d6;
+  --bar-dim: #9ec5f4;
+  --flag-bg: #fdf0d2;
+  --flag-ink: #7a4b00;
+  --input-bg: #ffffff;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #6250d6;
+  --pos: #006300;
+  --neg: #d03b3b;
+  --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --accent: #3987e5; --bar: #3987e5; --bar-dim: #1c5cab;
+    --flag-bg: #3a2c0a; --flag-ink: #f2c46b; --input-bg: #121211;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+    --pos: #0ca30c; --neg: #ec6b6b;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --accent: #3987e5; --bar: #3987e5; --bar-dim: #1c5cab;
+  --flag-bg: #3a2c0a; --flag-ink: #f2c46b; --input-bg: #121211;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+  --pos: #0ca30c; --neg: #ec6b6b;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page); color: var(--ink); font-family: var(--font); font-size: 14px; line-height: 1.45;
+  padding-block: 24px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1120px; margin: 0 auto; }
+header { margin-bottom: 20px; }
+h1 { font-size: 22px; font-weight: 650; margin: 0 0 4px; letter-spacing: -0.01em; text-wrap: balance; }
+header p { margin: 0; color: var(--ink-2); max-width: 70ch; }
+.layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+.rail { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: grid; gap: 18px; }
+.rail h2, .panel h2 { font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); margin: 0 0 10px; }
+.fields { display: grid; gap: 10px; }
+@media (max-width: 860px) { .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .fields { grid-template-columns: minmax(0, 1fr); } }
+.field label { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; color: var(--ink-2); margin-bottom: 3px; }
+.field .unit { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.field input, .field select {
+  width: 100%; font: inherit; font-variant-numeric: tabular-nums; color: var(--ink);
+  background: var(--input-bg); border: 1px solid var(--axis); border-radius: 6px; padding: 7px 9px; min-height: 36px;
+}
+.field input:focus-visible, .field select:focus-visible, .pick:focus-visible, .reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.flag { display: inline-block; font-size: 11px; font-weight: 600; background: var(--flag-bg); color: var(--flag-ink); padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: 1px; }
+.hint { font-size: 12px; color: var(--muted); margin: 4px 0 0; }
+.reset { font: inherit; font-size: 13px; color: var(--ink-2); background: transparent; border: 1px solid var(--axis); border-radius: 6px; padding: 7px 10px; cursor: pointer; justify-self: start; }
+.reset:hover { background: var(--page); }
+
+.main { display: grid; gap: 20px; min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; min-width: 0; }
+.panel .sub { color: var(--ink-2); margin: -4px 0 14px; max-width: 75ch; }
+
+/* scenario comparison */
+.picks { display: grid; gap: 6px; }
+.pick {
+  display: grid; grid-template-columns: minmax(130px, 210px) minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  width: 100%; text-align: left; font: inherit; color: var(--ink); background: transparent;
+  border: 1px solid transparent; border-radius: 8px; padding: 8px 10px; cursor: pointer;
+}
+.pick:hover { background: var(--page); }
+.pick[aria-pressed="true"] { border-color: var(--axis); background: var(--page); }
+.pick .nm { font-weight: 600; }
+.pick .ds { display: block; font-weight: 400; font-size: 12px; color: var(--ink-2); }
+.track { height: 16px; }
+.fill { height: 100%; border-radius: 0 4px 4px 0; background: var(--bar-dim); min-width: 2px; }
+.pick[aria-pressed="true"] .fill { background: var(--bar); }
+.val { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.val b { display: block; font-size: 15px; }
+.val span { font-size: 12px; color: var(--ink-2); }
+.pick.off { opacity: 0.55; cursor: default; }
+@media (max-width: 560px) {
+  .pick { grid-template-columns: minmax(0, 1fr) auto; }
+  .pick .track { grid-column: 1 / -1; grid-row: 2; }
+}
+
+/* stacked chart */
+.chartwrap { position: relative; }
+svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { font-family: var(--font); fill: var(--muted); font-size: 12px; }
+svg text.tot { fill: var(--ink); font-weight: 600; font-size: 12px; }
+svg text.tot2 { fill: var(--ink-2); font-size: 11px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 12.5px; }
+.legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.tip {
+  position: absolute; pointer-events: none; z-index: 5; min-width: 200px; max-width: 280px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--axis); border-radius: 8px;
+  padding: 9px 11px; font-size: 12.5px; box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+}
+.tip[hidden] { display: none; }
+.tip h3 { font-size: 12.5px; margin: 0 0 6px; }
+.tip .r { display: flex; justify-content: space-between; gap: 14px; padding: 1px 0; }
+.tip .r em { font-style: normal; display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
+.tip .r em i { width: 8px; height: 8px; border-radius: 2px; }
+.tip .r b { font-variant-numeric: tabular-nums; font-weight: 600; }
+.tip .net { border-top: 1px solid var(--grid); margin-top: 5px; padding-top: 5px; font-weight: 650; }
+
+/* tables */
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; min-width: 520px; }
+th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+tfoot td, td.t, th.t { font-weight: 650; }
+tr.sel td { background: var(--page); }
+td.neg { color: var(--pos); }
+.notes { color: var(--ink-2); font-size: 13px; display: grid; gap: 6px; padding-left: 18px; margin: 0; }
+@media (prefers-reduced-motion: no-preference) { .fill { transition: width 0.25s ease; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Elder Care Cost Scenarios</h1>
+  <p>Nov 2026 to Feb 2027, USD. Compare staying at Battery with home care against moving to IP, including the community fee refund schedule. Change any number on the left and everything recalculates. Your changes are saved in this browser only.</p>
+</header>
+
+<div class="layout">
+  <aside class="rail" aria-label="Inputs">
+    <div>
+      <h2>Costs</h2>
+      <div class="fields">
+        <div class="field"><label for="fixed">Battery rent + utilities <span class="unit">/ month</span></label><input id="fixed" type="number" inputmode="decimal" min="0" step="50"></div>
+        <div class="field"><label for="rent">IP rent <span class="unit">/ month</span></label><input id="rent" type="number" inputmode="decimal" min="0" step="50"></div>
+        <div class="field"><label for="care">IP assessed care <span class="unit">/ month</span></label><input id="care" type="number" inputmode="decimal" min="0" step="50"></div>
+        <div class="field"><label for="rate">Home care rate <span class="unit">/ hour</span></label><input id="rate" type="number" inputmode="decimal" min="0" step="1"></div>
+      </div>
+    </div>
+    <div>
+      <h2>Home care at Battery</h2>
+      <div class="fields">
+        <div class="field"><label for="h24">Round-the-clock care, Nov 1 arrival only <span class="unit">hours</span></label><input id="h24" type="number" inputmode="decimal" min="0" step="24"></div>
+        <div class="field"><label for="hDay">Then ongoing <span class="unit">hrs / day</span></label><input id="hDay" type="number" inputmode="decimal" min="0" step="1"></div>
+        <div class="field"><label for="hBack">After moving back from IP <span class="unit">hrs / day</span><span class="flag">Estimate</span></label><input id="hBack" type="number" inputmode="decimal" min="0" step="1"></div>
+      </div>
+      <p class="hint">Moving back from IP has no round-the-clock period. Its daily hours are a placeholder.</p>
+    </div>
+    <div>
+      <h2>Home care at IP</h2>
+      <div class="fields">
+        <div class="field"><label for="iVisits">Visits <span class="unit">/ week</span></label><input id="iVisits" type="number" inputmode="decimal" min="0" step="1"></div>
+        <div class="field"><label for="iHours">Hours per visit</label><input id="iHours" type="number" inputmode="decimal" min="0" step="1"></div>
+      </div>
+    </div>
+    <div>
+      <h2>Visiting family</h2>
+      <div class="fields">
+        <div class="field"><label for="nights">Nights of visit <span class="unit">/ month</span></label><input id="nights" type="number" inputmode="decimal" min="0" step="1"></div>
+        <div class="field"><label for="hotel">Hotel room <span class="unit">/ night</span><span class="flag">Estimate</span></label><input id="hotel" type="number" inputmode="decimal" min="0" step="10"></div>
+      </div>
+      <p class="hint">Family stays in her apartment for free while she is at IP. While she is at home they need a hotel. Set nights to 0 to leave this out.</p>
+    </div>
+    <div>
+      <h2>Community fee</h2>
+      <div class="fields">
+        <div class="field"><label for="fee">Community fee</label><input id="fee" type="number" inputmode="decimal" min="0" step="500"></div>
+        <div class="field"><label for="assess">Assessment deduction on refund</label><input id="assess" type="number" inputmode="decimal" min="0" step="50"></div>
+      </div>
+    </div>
+    <div>
+      <h2>Timing</h2>
+      <div class="fields">
+        <div class="field"><label for="endDay">Last day of rent when leaving</label>
+          <select id="endDay"><option value="0">Day before move-out</option><option value="1">Move-out day itself</option></select></div>
+        <div class="field"><label for="lag">Refund arrives after move-out</label>
+          <select id="lag"><option value="0">Same month</option><option value="1">1 month later</option><option value="2">2 months later</option><option value="3">3 months later</option></select></div>
+      </div>
+      <p class="hint">Rent end decides the refund tier for a 1st-of-month move-out (Dec 1 is 30 days or 31). The policy pays refunds within 60 business days, so it can land after the move-out month.</p>
+    </div>
+    <button type="button" class="reset" id="reset">Reset to defaults</button>
+  </aside>
+
+  <div class="main">
+    <section class="panel" aria-labelledby="cmp-h">
+      <h2 id="cmp-h">Total over 4 months</h2>
+      <p class="sub">Select a scenario to see its monthly breakdown below. Every IP scenario starts Nov 1.</p>
+      <div class="picks" id="picks"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="mo-h">
+      <h2 id="mo-h">Month by month</h2>
+      <p class="sub" id="moSub"></p>
+      <div class="chartwrap" id="chartwrap">
+        <svg class="chart" id="chart" role="img" aria-label="Stacked bar chart of monthly costs"></svg>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+      <div class="legend" id="legend"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="tb-h">
+      <h2 id="tb-h">Table view</h2>
+      <div class="scroll"><table id="tblSel"></table></div>
+      <h2 style="margin-top:20px">All scenarios, net by month</h2>
+      <div class="scroll"><table id="tblAll"></table></div>
+    </section>
+
+    <section class="panel" aria-labelledby="as-h">
+      <h2 id="as-h">How it is calculated</h2>
+      <ul class="notes">
+        <li>Battery rent + utilities is charged every month in every scenario.</li>
+        <li>IP rent and the assessed care fee are prorated by days at IP in each month.</li>
+        <li>Home care is priced per hour, day by day. At Battery from Nov 1: round-the-clock care for the first 72 hours (3 days), then 8 hours a day. After moving back from IP there is no round-the-clock period; the daily hours are an estimate (8 to start with). At IP: three 4-hour sessions a week for the whole stay (12 hours a week, spread evenly across the days).</li>
+        <li>Visiting family: one week a month, family uses her apartment when she is at IP at no cost. In months she is at Battery they stay in a hotel, so the hotel cost counts against the at-home scenarios (prorated by days at home in a mixed month).</li>
+        <li>The community fee is paid on Nov 1. The stay is counted in days from Nov 1 to the last day of rent, so leaving Dec 1 is 30 days (80%), Jan 1 is 61 days (40%) and Feb 1 is 92 days (no refund). If you leave within 30 days the refund is 80% of the fee, within 60 days 60%, within 90 days 40%, after that nothing. The assessment deduction comes off the refund amount (for example 80% of the fee, minus the deduction).</li>
+        <li>The IP assessment is finished, so the 100% refund for deciding not to move before it completes no longer applies. Not moving in at all gets the 80% tier (30-day notice), less the assessment deduction, so the first scenario still pays 20% of the fee plus that deduction.</li>
+        <li>"Stay" assumes you are still living at IP at the end of February, so no refund is received in this window.</li>
+      </ul>
+    </section>
+  </div>
+</div>
+</div>
+
+<script>
+const MONTHS = ['Nov 2026', 'Dec 2026', 'Jan 2027', 'Feb 2027'];
+const DAYS = [30, 31, 31, 28];
+const START = [0, 30, 61, 92];
+const TOTAL_DAYS = 120;
+const SERIES = [
+  { key: 'battery', label: 'Battery rent + utilities', color: 'var(--s1)' },
+  { key: 'ivyRent', label: 'IP rent', color: 'var(--s2)' },
+  { key: 'ivyCare', label: 'IP assessed care', color: 'var(--s3)' },
+  { key: 'hourly', label: 'Hourly home care', color: 'var(--s4)' },
+  { key: 'hotel', label: 'Family hotel while she is at home', color: 'var(--s7)' },
+  { key: 'fee', label: 'Community fee', color: 'var(--s5)' },
+  { key: 'refund', label: 'Fee refund', color: 'var(--s6)' }
+];
+const DEFAULTS = { fixed: 3300, rent: 8095, care: 2806, rate: 50, h24: 72, hDay: 8, hBack: 8, iVisits: 3, iHours: 4, nights: 7, hotel: 300, fee: 15000, assess: 500, endDay: 0, lag: 0 };
+const IDS = Object.keys(DEFAULTS);
+const STORE_INPUTS = 'eldercare-inputs-v5', STORE_SEL = 'eldercare-selected';
+
+let P = { ...DEFAULTS };
+let selected = 'stay';
+try {
+  const saved = JSON.parse(localStorage.getItem(STORE_INPUTS) || 'null');
+  if (saved) P = { ...P, ...saved };
+  const sel = localStorage.getItem(STORE_SEL);
+  if (sel) selected = sel;
+} catch (e) {}
+
+const $ = id => document.getElementById(id);
+const usd = n => (n < 0 ? '-$' : '$') + Math.round(Math.abs(n)).toLocaleString('en-US');
+const usdK = n => (n < 0 ? '-$' : '$') + (Math.abs(n) / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 }) + 'k';
+
+function tier(L) { return L <= 30 ? 0.8 : L <= 60 ? 0.6 : L <= 90 ? 0.4 : 0; }
+
+function scenarios() {
+  const list = [
+    { id: 'home', label: 'Move to Battery, Nov 1', desc: 'Hourly home care, 80% fee refund', L: null },
+    { id: 'stay', label: 'Move to IP Nov 1, stay', desc: 'Pay the fee, still at IP at end of Feb', L: TOTAL_DAYS }
+  ];
+  [['Dec 1', 30], ['Jan 1', 61], ['Feb 1', 92]].forEach(([d, days]) => {
+    const L = days + P.endDay, t = tier(L);
+    list.push({
+      id: 'leave' + days, label: 'IP Nov 1, back to Battery ' + d, leaves: true, L,
+      desc: L + ' days at IP, ' + (t ? Math.round(t * 100) + '% fee refund' : 'fee not refundable')
+    });
+  });
+  list.forEach(x => { x.valid = true; });
+  return list;
+}
+
+function monthOf(day) { for (let m = 3; m >= 0; m--) if (day >= START[m]) return m; return 0; }
+
+function compute(sc) {
+  const rows = MONTHS.map(() => ({ battery: P.fixed, ivyRent: 0, ivyCare: 0, hourly: 0, hotel: 0, fee: 0, refund: 0 }));
+  const ivyDays = [0, 0, 0, 0], hours = [0, 0, 0, 0];
+  const atIvyUntil = sc.L || 0;               // days 0..atIvyUntil-1 are at IP
+  const homeFrom = sc.L === TOTAL_DAYS ? Infinity : atIvyUntil;
+  for (let d = 0; d < TOTAL_DAYS; d++) {
+    const m = monthOf(d);
+    if (d < atIvyUntil) {
+      ivyDays[m]++;
+      hours[m] += P.iVisits * P.iHours / 7;
+    } else if (d >= homeFrom) {
+      const left24 = sc.L ? 0 : P.h24 - 24 * (d - homeFrom);   // round-the-clock only for the Nov 1 arrival
+      hours[m] += left24 > 0 ? Math.min(24, left24) : sc.L ? P.hBack : P.hDay;
+    }
+  }
+  MONTHS.forEach((_, m) => {
+    rows[m].ivyRent = P.rent * ivyDays[m] / DAYS[m];
+    rows[m].ivyCare = P.care * ivyDays[m] / DAYS[m];
+    rows[m].hourly = P.rate * hours[m];
+    // her apartment is free for visiting family only while she is away; otherwise they need a hotel
+    rows[m].hotel = P.nights * P.hotel * (DAYS[m] - ivyDays[m]) / DAYS[m];
+    rows[m].hours = hours[m];
+  });
+  // the assessment is complete, so the fee is paid in every scenario
+  rows[0].fee = P.fee;
+  if (sc.id === 'home' || sc.leaves) {
+    // not moving in at all gets the 80% (30-day notice) tier
+    const pct = sc.id === 'home' ? 0.8 : tier(sc.L);
+    const refund = Math.max(0, pct * P.fee - P.assess);
+    const arrive = (sc.id === 'home' ? 0 : monthOf(sc.L - 1 - P.endDay)) + P.lag;
+    if (arrive <= 3) rows[arrive].refund = -refund;
+  }
+  rows.forEach(r => { r.net = SERIES.reduce((a, k) => a + r[k.key], 0); });
+  return { rows, total: rows.reduce((a, r) => a + r.net, 0) };
+}
+
+/* ---------- inputs ---------- */
+function bindInputs() {
+  IDS.forEach(id => {
+    const el = $(id);
+    el.value = P[id];
+    el.addEventListener('input', () => {
+      const v = parseFloat(el.value);
+      P[id] = isFinite(v) && v >= 0 ? v : 0;
+      if (id === 'endDay' || id === 'lag') P[id] = parseInt(el.value, 10);
+      try { localStorage.setItem(STORE_INPUTS, JSON.stringify(P)); } catch (e) {}
+      render();
+    });
+  });
+  $('reset').addEventListener('click', () => {
+    P = { ...DEFAULTS };
+    IDS.forEach(id => { $(id).value = P[id]; });
+    try { localStorage.removeItem(STORE_INPUTS); } catch (e) {}
+    render();
+  });
+}
+
+/* ---------- comparison list ---------- */
+function renderPicks(list, results) {
+  const valid = list.filter(x => x.valid);
+  const max = Math.max(...valid.map(x => results[x.id].total), 1);
+  const home = results.home.total;
+  $('picks').innerHTML = list.map(x => {
+    if (!x.valid) {
+      return `<button class="pick off" disabled><span class="nm">${x.label}<span class="ds">Moves out after February with this move-in month</span></span><span class="track"></span><span class="val"><b>n/a</b></span></button>`;
+    }
+    const t = results[x.id].total;
+    const d = t - home;
+    const delta = x.id === 'home' ? 'baseline' : (d >= 0 ? '+' : '-') + usd(Math.abs(d)) + ' vs home';
+    return `<button class="pick" data-id="${x.id}" aria-pressed="${x.id === selected}">
+      <span class="nm">${x.label}<span class="ds">${x.desc}</span></span>
+      <span class="track"><div class="fill" style="width:${(t / max * 100).toFixed(1)}%"></div></span>
+      <span class="val"><b>${usd(t)}</b><span>${delta}</span></span></button>`;
+  }).join('');
+  document.querySelectorAll('.pick[data-id]').forEach(b => b.addEventListener('click', () => {
+    selected = b.dataset.id;
+    try { localStorage.setItem(STORE_SEL, selected); } catch (e) {}
+    render();
+  }));
+}
+
+/* ---------- stacked chart ---------- */
+function niceStep(range, ticks) {
+  const raw = range / ticks, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
+}
+function barPath(x, y, w, h, rt, rb) {
+  rt = Math.min(rt, h / 2, w / 2); rb = Math.min(rb, h / 2, w / 2);
+  return `M${x},${y + rt}` + (rt ? `a${rt},${rt} 0 0 1 ${rt},-${rt}` : '') + `h${w - 2 * rt}` + (rt ? `a${rt},${rt} 0 0 1 ${rt},${rt}` : '') +
+    `v${h - rt - rb}` + (rb ? `a${rb},${rb} 0 0 1 -${rb},${rb}` : '') + `h-${w - 2 * rb}` + (rb ? `a${rb},${rb} 0 0 1 -${rb},-${rb}` : '') + 'z';
+}
+
+function renderChart(sc, res) {
+  const svg = $('chart');
+  const W = Math.max(280, $('chartwrap').clientWidth);
+  const H = W < 480 ? 300 : 340;
+  const m = { l: 48, r: 8, t: 26, b: 28 };
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const posMax = Math.max(...res.rows.map(r => r.net - r.refund), 1);
+  const negMin = Math.min(0, ...res.rows.map(r => r.refund));
+  const step = niceStep(posMax - negMin, 5);
+  const top = Math.ceil(posMax / step) * step, bot = Math.floor(negMin / step) * step;
+  const y = v => m.t + ph * (1 - (v - bot) / (top - bot));
+  const band = pw / 4, bw = Math.min(88, band * 0.56);
+  let g = '';
+  for (let v = bot; v <= top + 1e-6; v += step) {
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" stroke="${v === 0 ? 'var(--axis)' : 'var(--grid)'}" stroke-width="1"/>` +
+      `<text x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end">${v === 0 ? '$0' : usdK(v)}</text>`;
+  }
+  res.rows.forEach((r, i) => {
+    const x = m.l + band * i + (band - bw) / 2;
+    const act = SERIES.filter(k => k.key !== 'refund' && r[k.key] > 0.5);
+    let cum = 0;
+    act.forEach((k, j) => {
+      const v = r[k.key], y0 = y(cum), y1 = y(cum + v);
+      const last = j === act.length - 1;
+      g += `<path d="${barPath(x, y1, bw, y0 - y1, last ? 4 : 0, 0)}" fill="${k.color}" stroke="var(--surface)" stroke-width="2"/>`;
+      cum += v;
+    });
+    if (r.refund < -0.5) {
+      const y0 = y(0), y1 = y(r.refund);
+      g += `<path d="${barPath(x, y0, bw, y1 - y0, 0, 4)}" fill="var(--s6)" stroke="var(--surface)" stroke-width="2"/>`;
+    }
+    const posTotal = r.net - r.refund;
+    g += `<text class="tot" x="${x + bw / 2}" y="${y(posTotal) - (r.refund < -0.5 ? 16 : 6)}" text-anchor="middle">${usd(posTotal)}</text>`;
+    if (r.refund < -0.5) g += `<text class="tot2" x="${x + bw / 2}" y="${y(posTotal) - 4}" text-anchor="middle">net ${usd(r.net)}</text>`;
+    g += `<text x="${m.l + band * i + band / 2}" y="${H - 8}" text-anchor="middle">${MONTHS[i]}</text>`;
+    g += `<rect class="hit" data-i="${i}" x="${m.l + band * i}" y="${m.t - 20}" width="${band}" height="${ph + 20}" fill="transparent"/>`;
+  });
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = g;
+  svg.querySelectorAll('.hit').forEach(h => {
+    const show = ev => showTip(ev, +h.dataset.i, res);
+    h.addEventListener('pointermove', show);
+    h.addEventListener('pointerdown', show);
+    h.addEventListener('pointerleave', () => { $('tip').hidden = true; });
+  });
+}
+
+function showTip(ev, i, res) {
+  const tip = $('tip'), wrap = $('chartwrap'), r = res.rows[i];
+  const rows = SERIES.filter(k => Math.abs(r[k.key]) > 0.5).map(k =>
+    `<div class="r"><em><i style="background:${k.color}"></i>${k.label}${k.key === 'hourly' ? ' (' + Math.round(r.hours) + ' h)' : ''}</em><b>${usd(r[k.key])}</b></div>`).join('');
+  tip.innerHTML = `<h3>${MONTHS[i]}</h3>${rows}<div class="r net"><span>Net this month</span><b>${usd(r.net)}</b></div>`;
+  tip.hidden = false;
+  const box = wrap.getBoundingClientRect();
+  let x = ev.clientX - box.left + 14, yy = ev.clientY - box.top + 14;
+  if (x + tip.offsetWidth > box.width) x = ev.clientX - box.left - tip.offsetWidth - 14;
+  if (x < 0) x = 4;
+  if (yy + tip.offsetHeight > box.height + 40) yy = Math.max(0, box.height - tip.offsetHeight);
+  tip.style.left = x + 'px'; tip.style.top = yy + 'px';
+}
+
+/* ---------- tables ---------- */
+function renderTables(list, results, sc) {
+  const res = results[sc.id];
+  const head = '<thead><tr><th></th>' + MONTHS.map(x => `<th>${x}</th>`).join('') + '<th class="t">4-month total</th></tr></thead>';
+  let body = '<tbody>';
+  SERIES.forEach(k => {
+    const sum = res.rows.reduce((a, r) => a + r[k.key], 0);
+    if (Math.abs(sum) < 0.5) return;
+    body += `<tr><td>${k.label}</td>` + res.rows.map(r => `<td class="${r[k.key] < -0.5 ? 'neg' : ''}">${Math.abs(r[k.key]) < 0.5 ? '–' : usd(r[k.key])}</td>`).join('') + `<td class="t ${sum < 0 ? 'neg' : ''}">${usd(sum)}</td></tr>`;
+  });
+  const hrs = res.rows.reduce((a, r) => a + r.hours, 0);
+  if (hrs > 0.5) body += '<tr><td style="color:var(--ink-2)">Home care hours</td>' + res.rows.map(r => `<td style="color:var(--ink-2)">${Math.round(r.hours)} h</td>`).join('') + `<td class="t" style="color:var(--ink-2)">${Math.round(hrs)} h</td></tr>`;
+  body += '</tbody>';
+  const foot = '<tfoot><tr><td>Net cost</td>' + res.rows.map(r => `<td>${usd(r.net)}</td>`).join('') + `<td>${usd(res.total)}</td></tr></tfoot>`;
+  $('tblSel').innerHTML = `<caption style="text-align:left;color:var(--ink-2);padding-bottom:6px;font-size:13px">${sc.label}</caption>` + head + body + foot;
+
+  let all = head + '<tbody>';
+  list.filter(x => x.valid).forEach(x => {
+    const r = results[x.id];
+    all += `<tr class="${x.id === sc.id ? 'sel' : ''}"><td>${x.label}</td>` + r.rows.map(q => `<td>${usd(q.net)}</td>`).join('') + `<td class="t">${usd(r.total)}</td></tr>`;
+  });
+  $('tblAll').innerHTML = all + '</tbody>';
+}
+
+function renderLegend() {
+  $('legend').innerHTML = SERIES.map(k => `<span><i style="background:${k.color}"></i>${k.label}</span>`).join('');
+}
+
+function render() {
+  const list = scenarios();
+  if (!list.find(x => x.id === selected && x.valid)) selected = 'stay';
+  const results = {};
+  list.filter(x => x.valid).forEach(x => { results[x.id] = compute(x); });
+  const sc = list.find(x => x.id === selected);
+  renderPicks(list, results);
+  $('moSub').textContent = sc.label + ': ' + usd(results[sc.id].total) + ' over four months. Hover or tap a month for the breakdown.';
+  renderChart(sc, results[sc.id]);
+  renderTables(list, results, sc);
+}
+
+bindInputs();
+renderLegend();
+render();
+let rt;
+window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 80); });
+</script>
+</body>
+</html>
